@@ -2,14 +2,18 @@ import * as fs from 'fs';
 import * as readline from 'readline';
 import { Scanner } from './scanner';
 import { Token } from './token';
+import { TokenType } from './token-type';
+import { Parser } from './parser';
+import { Expr } from './expression';
+import { AstPrinter } from './printer';
 
 export class Lox {
   private static hadError = false;
 
   public static main(args: string[]): void {
     if (args.length > 1) {
-      console.log("Usage: tslox [script]");
-      process.exit(64);  // following unix convention sysexit code
+      console.log('Usage: tslox [script]');
+      process.exit(64); // following unix convention sysexit code
     } else if (args.length === 1) {
       this.runFile(args[0]);
     } else {
@@ -34,14 +38,14 @@ export class Lox {
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
-      prompt: '> '
+      prompt: '> ',
     });
 
     rl.prompt();
 
     rl.on('line', (line) => {
       this.run(line);
-      this.hadError = false; 
+      this.hadError = false;
       rl.prompt();
     });
 
@@ -54,15 +58,22 @@ export class Lox {
   private static run(source: string): void {
     const scanner = new Scanner(source);
     const tokens: Token[] = scanner.scanTokens();
-
-    for (const token of tokens) {
-      console.log(token.toString());
-    }
-
+    const parser = new Parser(tokens);
+    const expr: Expr = parser.parse();
+    if (this.hadError) return;
+    console.log(new AstPrinter().print(expr));
   }
 
-  static error(line: number, message: string): void {
-    this.report(line, "", message);
+  static error(tokenOrLine: Token | number, message: string): void {
+    if (typeof tokenOrLine === 'number') {
+      this.report(tokenOrLine, '', message);
+    } else {
+      if (tokenOrLine.type === TokenType.EOF) {
+        this.report(tokenOrLine.line, ' at end', message);
+      } else {
+        this.report(tokenOrLine.line, ` at '${tokenOrLine.lexeme}'`, message);
+      }
+    }
   }
 
   static report(line: number, where: string, message: string): void {
