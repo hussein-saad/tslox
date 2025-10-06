@@ -13,6 +13,7 @@ import {
   Grouping,
   Logical,
   Variable,
+  Comma,
 } from './expression';
 
 export class AstPrinter implements Visitor<string> {
@@ -71,6 +72,10 @@ export class AstPrinter implements Visitor<string> {
 
   visitVariableExpr(expr: Variable): string {
     return expr.name.lexeme;
+  }
+
+  visitCommaExpr(expr: Comma): string {
+    return this.parenthesize(',', ...expr.expressions);
   }
 
   private parenthesize(name: string, ...exprs: Expr[]): string {

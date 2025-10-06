@@ -17,6 +17,7 @@ export interface Visitor<R> {
   visitGroupingExpr(expr: Grouping): R;
   visitLogicalExpr(expr: Logical): R;
   visitVariableExpr(expr: Variable): R;
+  visitCommaExpr(expr: Comma): R;
 }
 
 export class Assign extends Expr {
@@ -152,5 +153,18 @@ export class Variable extends Expr {
 
   accept<R>(visitor: Visitor<R>): R {
     return visitor.visitVariableExpr(this);
+  }
+}
+
+export class Comma extends Expr {
+  public readonly expressions: Expr[];
+
+  constructor(expressions: Expr[]) {
+    super();
+    this.expressions = expressions;
+  }
+
+  accept<R>(visitor: Visitor<R>): R {
+    return visitor.visitCommaExpr(this);
   }
 }

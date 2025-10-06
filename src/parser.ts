@@ -1,7 +1,8 @@
 import { Token } from './token';
-import { Binary, Expr, Grouping, Literal, Unary } from './expression';
+import { Binary, Comma, Expr, Grouping, Literal, Unary } from './expression';
 import { TokenType } from './token-type';
 import { Lox } from './lox';
+import { Console } from 'console';
 
 export class Parser {
   private static ParseError = class ParseError extends Error {};
@@ -23,7 +24,20 @@ export class Parser {
 
   // expression -> equality
   private expression(): Expr {
-    return this.equality();
+    return this.comma();
+  }
+
+  // comma -> equality ("," equality)*
+  private comma(): Expr {
+    let expressions: Expr[] = [this.equality()];
+
+    while (this.match(TokenType.COMMA)) {
+      expressions.push(this.equality());
+    }
+
+    console.log(expressions);
+
+    return expressions.length === 1 ? expressions[0] : new Comma(expressions);
   }
 
   // equality -> comparison ( ( "!=" | "==" ) comparison )*
