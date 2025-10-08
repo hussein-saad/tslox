@@ -2,7 +2,6 @@ import { Token } from './token';
 import { Binary, Comma, Expr, Grouping, Literal, Unary } from './expression';
 import { TokenType } from './token-type';
 import { Lox } from './lox';
-import { Console } from 'console';
 
 export class Parser {
   private static ParseError = class ParseError extends Error {};
@@ -35,13 +34,19 @@ export class Parser {
       expressions.push(this.equality());
     }
 
-    console.log(expressions);
-
     return expressions.length === 1 ? expressions[0] : new Comma(expressions);
   }
 
   // equality -> comparison ( ( "!=" | "==" ) comparison )*
   private equality(): Expr {
+    // missing left operand
+    const leftMissing = this.checkBinaryOperator([
+      TokenType.BANG_EQUAL,
+      TokenType.EQUAL_EQUAL,
+    ]);
+
+    if (leftMissing) return leftMissing;
+
     let expr: Expr = this.comparison();
 
     while (this.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
@@ -55,6 +60,16 @@ export class Parser {
 
   // comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term )*
   private comparison(): Expr {
+    // missing left operand
+    const leftMissing = this.checkBinaryOperator([
+      TokenType.GREATER,
+      TokenType.GREATER_EQUAL,
+      TokenType.LESS,
+      TokenType.LESS_EQUAL,
+    ]);
+
+    if (leftMissing) return leftMissing;
+
     let expr: Expr = this.term();
 
     while (
@@ -75,6 +90,14 @@ export class Parser {
 
   // term -> factor ( ( "-" | "+" ) factor )*
   private term(): Expr {
+    // missing left operand
+    const leftMissing = this.checkBinaryOperator([
+      TokenType.MINUS,
+      TokenType.PLUS,
+    ]);
+
+    if (leftMissing) return leftMissing;
+
     let expr: Expr = this.factor();
 
     while (this.match(TokenType.MINUS, TokenType.PLUS)) {
@@ -88,6 +111,14 @@ export class Parser {
 
   // factor -> unary ( ( "/" | "*" ) unary )*
   private factor(): Expr {
+    // missing left operand
+    const leftMissing = this.checkBinaryOperator([
+      TokenType.SLASH,
+      TokenType.STAR,
+    ]);
+
+    if (leftMissing) return leftMissing;
+
     let expr: Expr = this.unary();
 
     while (this.match(TokenType.SLASH, TokenType.STAR)) {
@@ -202,5 +233,21 @@ export class Parser {
 
       this.advance();
     }
+  }
+
+  // helper function to check for binary operator without left operand
+  private checkBinaryOperator(types: TokenType[]): Expr | null {
+    for (const type of types) {
+      if (this.check(type)) {
+        const operator: Token = this.advance();
+        const right: Expr = this.equality();
+        this.error(
+          operator,
+          `Binary operator '${operator.lexeme}' requires left operand.`,
+        );
+        return right;
+      }
+    }
+    return null;
   }
 }
