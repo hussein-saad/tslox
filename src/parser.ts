@@ -1,5 +1,13 @@
 import { Token } from './token';
-import { Binary, Comma, Expr, Grouping, Literal, Unary } from './expression';
+import {
+  Binary,
+  Comma,
+  Expr,
+  Grouping,
+  Literal,
+  Ternary,
+  Unary,
+} from './expression';
 import { TokenType } from './token-type';
 import { Lox } from './lox';
 
@@ -26,12 +34,29 @@ export class Parser {
     return this.comma();
   }
 
-  // comma -> equality ("," equality)*
+  // conditional -> equality ("?" equality ":" conditional)?
+  private ternary(): Expr {
+    let expr: Expr = this.equality();
+
+    if (this.match(TokenType.QUESTION)) {
+      const thenBranch: Expr = this.equality();
+      this.consume(
+        TokenType.COLON,
+        "Expect ':' after then branch of ternary operator.",
+      );
+      const elseBranch: Expr = this.ternary();
+      expr = new Ternary(expr, thenBranch, elseBranch);
+    }
+
+    return expr;
+  }
+
+  // comma -> conditional ("," conditional)*
   private comma(): Expr {
-    let expressions: Expr[] = [this.equality()];
+    let expressions: Expr[] = [this.ternary()];
 
     while (this.match(TokenType.COMMA)) {
-      expressions.push(this.equality());
+      expressions.push(this.ternary());
     }
 
     return expressions.length === 1 ? expressions[0] : new Comma(expressions);

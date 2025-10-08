@@ -14,6 +14,7 @@ import {
   Logical,
   Variable,
   Comma,
+  Ternary,
 } from './expression';
 
 export class AstPrinter implements Visitor<string> {
@@ -76,6 +77,13 @@ export class AstPrinter implements Visitor<string> {
 
   visitCommaExpr(expr: Comma): string {
     return this.parenthesize(',', ...expr.expressions);
+  }
+
+  visitTernaryExpr(expr: Ternary): string {
+    const condition = expr.condition.accept(this);
+    const thenBranch = expr.thenBranch.accept(this);
+    const elseBranch = expr.elseBranch.accept(this);
+    return `(${condition} ? ${thenBranch} : ${elseBranch})`;
   }
 
   private parenthesize(name: string, ...exprs: Expr[]): string {

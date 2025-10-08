@@ -18,6 +18,7 @@ export interface Visitor<R> {
   visitLogicalExpr(expr: Logical): R;
   visitVariableExpr(expr: Variable): R;
   visitCommaExpr(expr: Comma): R;
+  visitTernaryExpr(expr: Ternary): R;
 }
 
 export class Assign extends Expr {
@@ -166,5 +167,19 @@ export class Comma extends Expr {
 
   accept<R>(visitor: Visitor<R>): R {
     return visitor.visitCommaExpr(this);
+  }
+}
+
+export class Ternary extends Expr {
+  constructor(
+    public readonly condition: Expr,
+    public readonly thenBranch: Expr,
+    public readonly elseBranch: Expr,
+  ) {
+    super();
+  }
+
+  accept<R>(visitor: Visitor<R>): R {
+    return visitor.visitTernaryExpr(this);
   }
 }
