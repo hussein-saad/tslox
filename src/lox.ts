@@ -6,9 +6,13 @@ import { TokenType } from './token-type';
 import { Parser } from './parser';
 import { Expr } from './expression';
 import { AstPrinter } from './printer';
+import { RuntimeError } from './runtimeerror';
+import { Interpreter } from './interpreter';
 
 export class Lox {
+  private static readonly interpreter = new Interpreter();
   private static hadError = false;
+  private static hadRuntimeError = false;
 
   public static main(args: string[]): void {
     if (args.length > 1) {
@@ -27,6 +31,9 @@ export class Lox {
       this.run(source);
       if (this.hadError) {
         process.exit(65);
+      }
+      if (this.hadRuntimeError) {
+        process.exit(70);
       }
     } catch (e) {
       console.error(`Error reading file: ${path}`);
@@ -61,7 +68,7 @@ export class Lox {
     const parser = new Parser(tokens);
     const expr: Expr = parser.parse();
     if (this.hadError) return;
-    console.log(new AstPrinter().print(expr));
+    this.interpreter.interpret(expr);
   }
 
   static error(tokenOrLine: Token | number, message: string): void {
@@ -74,6 +81,11 @@ export class Lox {
         this.report(tokenOrLine.line, ` at '${tokenOrLine.lexeme}'`, message);
       }
     }
+  }
+
+  static runtimeError(error: RuntimeError): void {
+    console.error(error.message + '\n[line ' + error.token.line + ']');
+    this.hadRuntimeError = true;
   }
 
   static report(line: number, where: string, message: string): void {

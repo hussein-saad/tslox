@@ -116,10 +116,7 @@ export class Parser {
   // term -> factor ( ( "-" | "+" ) factor )*
   private term(): Expr {
     // missing left operand
-    const leftMissing = this.checkBinaryOperator([
-      TokenType.MINUS,
-      TokenType.PLUS,
-    ]);
+    const leftMissing = this.checkBinaryOperator([TokenType.PLUS]);
 
     if (leftMissing) return leftMissing;
 
