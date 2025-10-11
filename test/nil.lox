@@ -1,0 +1,13 @@
+nil
+
+nil == nil
+
+nil != 5
+
+nil != "hello"
+
+!nil
+
+!!nil
+
+nil == (5 > 10)

@@ -1,0 +1,4 @@
+// the two operands needs to be both numbers or stings
+5 + "hello"
+
++ 10

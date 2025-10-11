@@ -1,0 +1,20 @@
+// till now will produce infinty, mybe i will change that later
+10 / 0
+
+999999999999999 + 1
+
+0.0000000001 * 0.0000000001
+
+0 - 0
+
+((((5))))
+
+// every thing is true except zero, nil, and false
+!0
+!42
+!""
+
+!"hello"
+// no comparison for strings
+"abc" < "def"
+
