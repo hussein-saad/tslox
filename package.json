@@ -6,9 +6,14 @@
   "bin": {
     "tslox": "dist/lox.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
-    "start": "node dist/lox.js"
+    "start": "node dist/lox.js",
+    "pack": "pnpm build && pnpm pack --pack-destination build"
   },
   "keywords": [],
   "author": "",
