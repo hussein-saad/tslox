@@ -52,15 +52,15 @@ export class Interpreter implements Visitor<Object> {
         this.checkNumberOperands(expr.operator, left, right);
         return (left as number) - (right as number);
       case TokenType.PLUS:
-        if (typeof left === 'string' && typeof right === 'string') {
-          return left + right;
-        }
         if (typeof left === 'number' && typeof right === 'number') {
           return (left as number) + (right as number);
         }
+        if (typeof left === 'string' || typeof right === 'string') {
+          return left.toString() + right.toString();
+        }
         throw new RuntimeError(
           expr.operator,
-          'Operands must be both numbers or both strings.',
+          'Operands must be numbers or strings.',
         );
       case TokenType.SLASH:
         this.checkNumberOperands(expr.operator, left, right);
