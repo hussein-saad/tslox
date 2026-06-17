@@ -70,17 +70,17 @@ export class Interpreter implements Visitor<Object> {
         return (left as number) * (right as number);
 
       case TokenType.GREATER:
-        this.checkNumberOperands(expr.operator, left, right);
-        return (left as number) > (right as number);
+        this.checkNumberOrStringsOperands(expr.operator, left, right);
+        return left > right;
       case TokenType.GREATER_EQUAL:
-        this.checkNumberOperands(expr.operator, left, right);
-        return (left as number) >= (right as number);
+        this.checkNumberOrStringsOperands(expr.operator, left, right);
+        return left >= right;
       case TokenType.LESS:
-        this.checkNumberOperands(expr.operator, left, right);
-        return (left as number) < (right as number);
+        this.checkNumberOrStringsOperands(expr.operator, left, right);
+        return left < right;
       case TokenType.LESS_EQUAL:
-        this.checkNumberOperands(expr.operator, left, right);
-        return (left as number) <= (right as number);
+        this.checkNumberOrStringsOperands(expr.operator, left, right);
+        return left <= right;
       case TokenType.BANG_EQUAL:
         return !this.isEqual(left, right);
       case TokenType.EQUAL_EQUAL:
@@ -154,6 +154,12 @@ export class Interpreter implements Visitor<Object> {
   private checkNumberOperands(operator: Token, left: Object, right: Object) {
     if (typeof left === 'number' && typeof right === 'number') return;
     throw new RuntimeError(operator, 'Operands must be numbers.');
+  }
+
+  private checkNumberOrStringsOperands(operator: Token, left: Object, right: Object) {
+    if ((typeof left === 'number' && typeof right === 'number') ||
+        (typeof left === 'string' && typeof right === 'string')) return;
+    throw new RuntimeError(operator, 'Operands must be both numbers or both strings.');
   }
 
   private stringify(object: Object): string {
