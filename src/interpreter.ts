@@ -20,8 +20,17 @@ import { RuntimeError } from './runtimeerror';
 import { Token } from './token';
 import { TokenType } from './token-type';
 import { Lox } from './lox';
+import { Stmt, StmtVisitor, Print, Expression } from './stmt';
+export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
+  visitExpressionStmt(stmt: Expression): void {
+    this.evaluate(stmt.expression);
+  }
 
-export class Interpreter implements Visitor<Object> {
+  visitPrintStmt(stmt: Print): void {
+    const value = this.evaluate(stmt.expression);
+    console.log(this.stringify(value));
+  }
+
   visitLiteralExpr(expr: Literal): Object {
     return expr.value;
   }
@@ -156,10 +165,20 @@ export class Interpreter implements Visitor<Object> {
     throw new RuntimeError(operator, 'Operands must be numbers.');
   }
 
-  private checkNumberOrStringsOperands(operator: Token, left: Object, right: Object) {
-    if ((typeof left === 'number' && typeof right === 'number') ||
-        (typeof left === 'string' && typeof right === 'string')) return;
-    throw new RuntimeError(operator, 'Operands must be both numbers or both strings.');
+  private checkNumberOrStringsOperands(
+    operator: Token,
+    left: Object,
+    right: Object,
+  ) {
+    if (
+      (typeof left === 'number' && typeof right === 'number') ||
+      (typeof left === 'string' && typeof right === 'string')
+    )
+      return;
+    throw new RuntimeError(
+      operator,
+      'Operands must be both numbers or both strings.',
+    );
   }
 
   private stringify(object: Object): string {
@@ -175,16 +194,20 @@ export class Interpreter implements Visitor<Object> {
     return object.toString();
   }
 
-  interpret(expression: Expr): void {
+  interpret(statements: Stmt[]): void {
     try {
-      const value = this.evaluate(expression);
-      console.log(this.stringify(value));
+      for (const statement of statements) {
+        this.execute(statement);
+      }
     } catch (error) {
       if (error instanceof RuntimeError) {
         Lox.runtimeError(error);
         return;
       }
-      throw error;
     }
+  }
+
+  private execute(stmt: Stmt): void {
+    stmt.accept(this);
   }
 }

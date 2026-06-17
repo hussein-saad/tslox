@@ -8,6 +8,7 @@ import { Expr } from './expression';
 import { AstPrinter } from './printer';
 import { RuntimeError } from './runtimeerror';
 import { Interpreter } from './interpreter';
+import { Stmt } from './stmt';
 
 export class Lox {
   private static readonly interpreter = new Interpreter();
@@ -66,9 +67,9 @@ export class Lox {
     const scanner = new Scanner(source);
     const tokens: Token[] = scanner.scanTokens();
     const parser = new Parser(tokens);
-    const expr: Expr = parser.parse();
+    const statements: Array<Stmt> = parser.parse();
     if (this.hadError) return;
-    this.interpreter.interpret(expr);
+    this.interpreter.interpret(statements);
   }
 
   static error(tokenOrLine: Token | number, message: string): void {

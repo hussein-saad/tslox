@@ -10,6 +10,7 @@ import {
 } from './expression';
 import { TokenType } from './token-type';
 import { Lox } from './lox';
+import { Stmt, Print, Expression } from './stmt';
 
 export class Parser {
   private static ParseError = class ParseError extends Error {};
@@ -21,12 +22,29 @@ export class Parser {
     this.tokens = tokens;
   }
 
-  parse(): Expr {
-    try {
-      return this.expression();
-    } catch (error: any) {
-      return null;
+  parse(): Array<Stmt> {
+    const statements: Array<Stmt> = [];
+    while (!this.isAtEnd()) {
+      statements.push(this.statement());
     }
+    return statements;
+  }
+
+  private statement(): Stmt {
+    if (this.match(TokenType.PRINT)) return this.printStatement();
+    return this.expressionStatement();
+  }
+
+  private printStatement(): Stmt {
+    const value: Expr = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
+    return new Print(value);
+  }
+
+  private expressionStatement(): Stmt {
+    const expr: Expr = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+    return new Expression(expr);
   }
 
   // expression -> equality
