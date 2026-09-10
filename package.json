@@ -13,6 +13,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/lox.js",
+    "test": "pnpm build && node scripts/run-tests.js",
     "pack": "pnpm build && pnpm pack --pack-destination build"
   },
   "keywords": [],
