@@ -20,8 +20,15 @@ import { RuntimeError } from './runtimeerror';
 import { Token } from './token';
 import { TokenType } from './token-type';
 import { Lox } from './lox';
-import { Stmt, StmtVisitor, Print, Expression } from './stmt';
+import { Stmt, StmtVisitor, Print, Expression, Var, Block } from './stmt';
+import { Environment } from './environment';
 export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
+  private environment: Environment = new Environment();
+
+  visitBlockStmt(stmt: Block): void {
+    this.executeBlock(stmt.statements, new Environment(this.environment));
+  }
+
   visitExpressionStmt(stmt: Expression): void {
     this.evaluate(stmt.expression);
   }
@@ -29,6 +36,14 @@ export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
   visitPrintStmt(stmt: Print): void {
     const value = this.evaluate(stmt.expression);
     console.log(this.stringify(value));
+  }
+
+  visitVariableStmt(stmt: Var): void {
+    var value: Object = null;
+    if (stmt.initializer !== null) {
+      value = this.evaluate(stmt.initializer);
+    }
+    this.environment.define(stmt.name.lexeme, value);
   }
 
   visitLiteralExpr(expr: Literal): Object {
@@ -98,7 +113,9 @@ export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
   }
 
   visitAssignExpr(expr: Assign): Object {
-    throw new Error('Method not implemented.');
+    const value = this.evaluate(expr.value);
+    this.environment.assign(expr.name, value);
+    return value;
   }
 
   visitCallExpr(expr: Call): Object {
@@ -126,7 +143,7 @@ export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
   }
 
   visitVariableExpr(expr: Variable): Object {
-    throw new Error('Method not implemented.');
+    return this.environment.get(expr.name);
   }
 
   visitCommaExpr(expr: Comma): Object {
@@ -134,7 +151,12 @@ export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
   }
 
   visitTernaryExpr(expr: Ternary): Object {
-    throw new Error('Method not implemented.');
+    const condition = this.evaluate(expr.condition);
+    if (this.isTruthy(condition)) {
+      return this.evaluate(expr.thenBranch);
+    } else {
+      return this.evaluate(expr.elseBranch);
+    }
   }
 
   private evaluate(expr: Expr): Object {
@@ -207,7 +229,36 @@ export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
     }
   }
 
+  interpretRepl(statements: Stmt[]): void {
+    try {
+      for (const statement of statements) {
+        if (statement instanceof Expression) {
+          console.log(this.stringify(this.evaluate(statement.expression)));
+        } else {
+          this.execute(statement);
+        }
+      }
+    } catch (error) {
+      if (error instanceof RuntimeError) {
+        Lox.runtimeError(error);
+      }
+    }
+  }
+
   private execute(stmt: Stmt): void {
     stmt.accept(this);
+  }
+
+  executeBlock(statements: Stmt[], environment: Environment): void {
+    const previous: Environment = this.environment;
+    try {
+      this.environment = environment;
+
+      for (const statement of statements) {
+        this.execute(statement);
+      }
+    } finally {
+      this.environment = previous;
+    }
   }
 }

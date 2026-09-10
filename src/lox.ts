@@ -4,8 +4,6 @@ import { Scanner } from './scanner';
 import { Token } from './token';
 import { TokenType } from './token-type';
 import { Parser } from './parser';
-import { Expr } from './expression';
-import { AstPrinter } from './printer';
 import { RuntimeError } from './runtimeerror';
 import { Interpreter } from './interpreter';
 import { Stmt } from './stmt';
@@ -52,7 +50,7 @@ export class Lox {
     rl.prompt();
 
     rl.on('line', (line) => {
-      this.run(line);
+      this.run(line, true);
       this.hadError = false;
       rl.prompt();
     });
@@ -63,13 +61,19 @@ export class Lox {
     });
   }
 
-  private static run(source: string): void {
+  private static run(source: string, isRepl = false): void {
     const scanner = new Scanner(source);
     const tokens: Token[] = scanner.scanTokens();
     const parser = new Parser(tokens);
-    const statements: Array<Stmt> = parser.parse();
+    const statements: Array<Stmt> = isRepl
+      ? parser.parseRepl()
+      : parser.parse();
     if (this.hadError) return;
-    this.interpreter.interpret(statements);
+    if (isRepl) {
+      this.interpreter.interpretRepl(statements);
+    } else {
+      this.interpreter.interpret(statements);
+    }
   }
 
   static error(tokenOrLine: Token | number, message: string): void {

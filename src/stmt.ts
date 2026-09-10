@@ -1,4 +1,5 @@
-import { Expr, Visitor } from './expression';
+import { Expr } from './expression';
+import { Token } from './token';
 
 export abstract class Stmt {
   abstract accept<R>(visitor: StmtVisitor<R>): R;
@@ -7,6 +8,8 @@ export abstract class Stmt {
 export interface StmtVisitor<R> {
   visitExpressionStmt(stmt: Expression): R;
   visitPrintStmt(stmt: Print): R;
+  visitVariableStmt(stmt: Var): R;
+  visitBlockStmt(stmt: Block): R;
 }
 
 export class Expression extends Stmt {
@@ -26,5 +29,28 @@ export class Print extends Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitPrintStmt(this);
+  }
+}
+
+export class Var extends Stmt {
+  constructor(
+    public readonly name: Token,
+    public readonly initializer: Expr | null,
+  ) {
+    super();
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitVariableStmt(this);
+  }
+}
+
+export class Block extends Stmt {
+  constructor(public readonly statements: Stmt[]) {
+    super();
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitBlockStmt(this);
   }
 }
