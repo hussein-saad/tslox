@@ -1,0 +1,25 @@
+var value = "global";
+print value;
+
+{
+  var value = "local";
+  print value;
+}
+
+print value;
+
+var count = 1;
+{
+  count = 2;
+  print count;
+}
+print count;
+
+{
+  var outer = "outer";
+  {
+    print outer;
+    var inner = "inner";
+    print inner;
+  }
+}

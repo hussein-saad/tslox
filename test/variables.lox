@@ -1,0 +1,11 @@
+var x = 10;
+print x;
+
+var y;
+print y;
+
+var message = "hello";
+print message;
+
+var truth = true;
+print truth;

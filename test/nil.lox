@@ -1,13 +1,13 @@
-nil
+nil;
 
-nil == nil
+nil == nil;
 
-nil != 5
+nil != 5;
 
-nil != "hello"
+nil != "hello";
 
-!nil
+!nil;
 
-!!nil
+!!nil;
 
-nil == (5 > 10)
+nil == (5 > 10);

@@ -1,15 +1,15 @@
-true
+true;
 
-false
+false;
 
-!true
+!true;
 
-!false
+!false;
 
-!!true
+!!true;
 
-!(5 > 3)
+!(5 > 3);
 
-!(5 == 5)
+!(5 == 5);
 
-!(5 - 4 > 3 * 2 == !nil)
+!(5 - 4 > 3 * 2 == !nil);

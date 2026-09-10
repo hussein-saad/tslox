@@ -1,4 +1,7 @@
 // the two operands needs to be both numbers or stings
-5 + "hello"
+5 + "hello";
 
-+ 10
++ 10;
+
+var x = 1;
+x + 1 = 2;

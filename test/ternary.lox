@@ -1,0 +1,7 @@
+print true ? 10 : 20;
+print false ? 10 : 20;
+print 0 ? 10 : 20;
+print nil ? 10 : 20;
+print 1 ? 10 : 20;
+print true ? 1 : false ? 2 : 3;
+print false ? 1 : true ? 2 : 3;
