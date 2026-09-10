@@ -1,113 +1,77 @@
 # tslox
 
-A TypeScript implementation of the Lox programming language tree-walk interpreter from [Crafting Interpreters](https://craftinginterpreters.com/) by Robert Nystrom.
+`tslox` is a tree-walk interpreter for the Lox language, written in TypeScript. It follows [Crafting Interpreters](https://craftinginterpreters.com/).
 
-## Current Implementation Status
+## What works
 
-### Implemented Features
+- Numbers, strings, booleans, and `nil`
+- Arithmetic, comparisons, equality, and unary operators
+- Variables and assignment
+- Blocks and variable scope
+- Ternary expressions
+- `print` statements
+- Interactive REPL and script files
+- Parser and runtime error reporting
 
-- **Lexical Analysis (Scanner)**
+In this interpreter, `nil`, `false`, and `0` are treated as false. Other values are true.
 
-  - Tokenization of Lox source code
-  - Support for all Lox token types
-  - Line number tracking for error reporting
-
-- **Parsing**
-
-  - Recursive descent parser
-  - Expression parsing with proper precedence
-  - Support for:
-    - Binary expressions (`+`, `-`, `*`, `/`, `>`, `>=`, `<`, `<=`, `==`, `!=`)
-    - Unary expressions (`-`, `!`)
-    - Grouping with parentheses
-    - Literals (numbers, strings, booleans, nil)
-
-- **Runtime Interpreter**
-
-  - Expression evaluation
-  - Arithmetic operations
-  - String concatenation
-  - Comparison operators
-  - Truthiness semantics (nil and 0 are falsy)
-  - Runtime error handling
-
-- **REPL & File Execution**
-  - Interactive REPL mode
-  - Script file execution
-
-### Planned Features
-
-- [ ] Variable declarations and assignments
-- [ ] Statements
-- [ ] Control flow (if/else, while, for)
-- [ ] Functions and closures
-- [ ] Classes and inheritance
-- [ ] Logical operators (`and`, `or`)
-- [ ] Ternary and comma operators
-
-## Prerequisites
-
-- Node.js (v22.20.0 or higher)
-- pnpm (v10.15.1 or compatible)
-
-## Installation
+## Install
 
 ```bash
 pnpm install
 ```
 
-## Building
+## Run the interpreter
+
+Build the project first:
 
 ```bash
 pnpm build
 ```
 
-## Usage
-
-### Running the REPL
+Start the REPL:
 
 ```bash
 pnpm start
 ```
 
-This starts an interactive prompt where you can enter Lox expressions:
+The REPL accepts both expressions and statements:
 
-```
+```text
 > 2 + 3 * 4
 14
-> "Hello, " + "World!"
-Hello, World!
-> !(5 - 4 > 3 * 2 == !nil)
-true
->
+> var x = 10;
+> x = x + 2
+12
+> print x;
+12
 ```
 
-### Running a Script File
+Run a Lox script:
 
 ```bash
-pnpm start path/to/script.lox
+pnpm start test/scope.lox
 ```
 
-## Project Structure
+## Run the tests
 
+Run all script and REPL tests with one command:
+
+```bash
+pnpm test
 ```
-tslox/
-├── src/
-│   ├── expression.ts      # AST node definitions
-│   ├── interpreter.ts     # Tree-walk interpreter & expression evaluator
-│   ├── lox.ts            # Main entry point
-│   ├── parser.ts         # Recursive descent parser
-│   ├── printer.ts        # AST pretty-printer
-│   ├── runtimeerror.ts   # Runtime error handling
-│   ├── scanner.ts        # Lexical analyzer/tokenizer
-│   ├── token-type.ts     # Token type enumeration
-│   └── token.ts          # Token class definition
-├── package.json
-├── tsconfig.json
-└── README.md
+
+The script examples are in the `test/` directory.
+
+## Project layout
+
+```text
+src/       Interpreter source code
+test/      Lox script test cases
+scripts/   Test runners
 ```
 
 ## Resources
 
-- [Crafting Interpreters Book](https://craftinginterpreters.com/)
-- [Lox Language Specification](https://craftinginterpreters.com/the-lox-language.html)
+- [Crafting Interpreters](https://craftinginterpreters.com/)
+- [The Lox Language](https://craftinginterpreters.com/the-lox-language.html)
