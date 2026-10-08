@@ -12,7 +12,7 @@ import {
 } from './expression';
 import { TokenType } from './token-type';
 import { Lox } from './lox';
-import { Stmt, Print, Expression, Var, Block } from './stmt';
+import { Stmt, Print, Expression, Var, Block, If } from './stmt';
 
 export class Parser {
   private static ParseError = class ParseError extends Error {};
@@ -93,6 +93,7 @@ export class Parser {
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
+    if (this.match(TokenType.IF)) return this.ifStatement();
     return this.expressionStatement();
   }
 
@@ -117,6 +118,21 @@ export class Parser {
 
     this.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
     return statements;
+  }
+
+  private ifStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+    const condition: Expr = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+
+    const thenBranch: Stmt = this.statement();
+
+    let elseBranch: Stmt | null = null;
+    if (this.match(TokenType.ELSE)) {
+      elseBranch = this.statement();
+    }
+
+    return new If(condition, thenBranch, elseBranch);
   }
 
   private assignment(): Expr {

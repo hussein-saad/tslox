@@ -20,7 +20,7 @@ import { RuntimeError } from './runtimeerror';
 import { Token } from './token';
 import { TokenType } from './token-type';
 import { Lox } from './lox';
-import { Stmt, StmtVisitor, Print, Expression, Var, Block } from './stmt';
+import { Stmt, StmtVisitor, Print, Expression, Var, Block, If } from './stmt';
 import { Environment } from './environment';
 export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
   private environment: Environment = new Environment();
@@ -44,6 +44,15 @@ export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
       value = this.evaluate(stmt.initializer);
     }
     this.environment.define(stmt.name.lexeme, value);
+  }
+
+  visitIfStmt(stmt: If): void {
+    const condition = this.evaluate(stmt.condition);
+    if (this.isTruthy(condition)) {
+      this.execute(stmt.thenBranch);
+    } else if (stmt.elseBranch !== null) {
+      this.execute(stmt.elseBranch);
+    }
   }
 
   visitLiteralExpr(expr: Literal): Object {

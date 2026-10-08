@@ -10,6 +10,7 @@ export interface StmtVisitor<R> {
   visitPrintStmt(stmt: Print): R;
   visitVariableStmt(stmt: Var): R;
   visitBlockStmt(stmt: Block): R;
+  visitIfStmt(stmt: If): R;
 }
 
 export class Expression extends Stmt {
@@ -52,5 +53,19 @@ export class Block extends Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitBlockStmt(this);
+  }
+}
+
+export class If extends Stmt {
+  constructor(
+    public readonly condition: Expr,
+    public readonly thenBranch: Stmt,
+    public readonly elseBranch: Stmt | null,
+  ) {
+    super();
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitIfStmt(this);
   }
 }
