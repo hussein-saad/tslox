@@ -13,7 +13,7 @@ import {
 } from './expression';
 import { TokenType } from './token-type';
 import { Lox } from './lox';
-import { Stmt, Print, Expression, Var, Block, If } from './stmt';
+import { Stmt, Print, Expression, Var, Block, If, While } from './stmt';
 
 export class Parser {
   private static ParseError = class ParseError extends Error {};
@@ -95,6 +95,8 @@ export class Parser {
     if (this.match(TokenType.PRINT)) return this.printStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
     if (this.match(TokenType.IF)) return this.ifStatement();
+    if (this.match(TokenType.WHILE)) return this.whileStatement();
+    if (this.match(TokenType.FOR)) return this.forStatement();
     return this.expressionStatement();
   }
 
@@ -134,6 +136,58 @@ export class Parser {
     }
 
     return new If(condition, thenBranch, elseBranch);
+  }
+
+  private whileStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+    const condition: Expr = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+    const body: Stmt = this.statement();
+
+    return new While(condition, body);
+  }
+
+  private forStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+
+    let initializer: Stmt | null;
+    if (this.match(TokenType.SEMICOLON)) {
+      initializer = null;
+    } else if (this.match(TokenType.VAR)) {
+      initializer = this.varDeclaration();
+    } else {
+      initializer = this.expressionStatement();
+    }
+
+    let condition: Expr | null = null;
+    if (!this.check(TokenType.SEMICOLON)) {
+      condition = this.expression();
+    }
+    this.consume(TokenType.SEMICOLON, "Expect ';' after for condition.");
+
+    let increment: Expr | null = null;
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      increment = this.expression();
+    }
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after for loop.");
+
+    let body: Stmt = this.statement();
+
+    if (increment !== null) {
+      body = new Block([body, new Expression(increment)]);
+    }
+
+    if (condition === null) {
+      condition = new Literal(true);
+    }
+
+    body = new While(condition, body);
+
+    if (initializer !== null) {
+      body = new Block([initializer, body]);
+    }
+
+    return body;
   }
 
   private assignment(): Expr {
