@@ -6,6 +6,7 @@ import {
   Expr,
   Grouping,
   Literal,
+  Logical,
   Ternary,
   Unary,
   Variable,
@@ -158,18 +159,43 @@ export class Parser {
     return this.comma();
   }
 
-  // conditional -> equality ("?" equality ":" conditional)?
   private ternary(): Expr {
-    let expr: Expr = this.equality();
+    let expr: Expr = this.or();
 
     if (this.match(TokenType.QUESTION)) {
-      const thenBranch: Expr = this.equality();
+      const thenBranch: Expr = this.or();
       this.consume(
         TokenType.COLON,
         "Expect ':' after then branch of ternary operator.",
       );
       const elseBranch: Expr = this.ternary();
       expr = new Ternary(expr, thenBranch, elseBranch);
+    }
+
+    return expr;
+  }
+
+  // or -> and ( "or" and )*
+  private or(): Expr {
+    let expr: Expr = this.and();
+
+    while (this.match(TokenType.OR)) {
+      const operator: Token = this.previous();
+      const right: Expr = this.and();
+      expr = new Logical(expr, operator, right);
+    }
+
+    return expr;
+  }
+
+  // and -> equality ( "and" equality )*
+  private and(): Expr {
+    let expr: Expr = this.equality();
+
+    while (this.match(TokenType.AND)) {
+      const operator: Token = this.previous();
+      const right: Expr = this.equality();
+      expr = new Logical(expr, operator, right);
     }
 
     return expr;

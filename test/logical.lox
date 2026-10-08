@@ -1,0 +1,10 @@
+print true and true;
+print true and false;
+print false or true;
+print false or false;
+print 1 and 2;
+print nil or "fallback";
+print false and (1 / 0);
+print true or (1 / 0);
+print true or false and false;
+print false and true or true;

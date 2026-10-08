@@ -148,7 +148,17 @@ export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
   }
 
   visitLogicalExpr(expr: Logical): Object {
-    throw new Error('Method not implemented.');
+    const left = this.evaluate(expr.left);
+
+    if (expr.operator.type === TokenType.AND) {
+      return this.isTruthy(left) ? this.evaluate(expr.right) : left;
+    }
+
+    if (this.isTruthy(left)) {
+      return left;
+    }
+
+    return this.evaluate(expr.right);
   }
 
   visitVariableExpr(expr: Variable): Object {
