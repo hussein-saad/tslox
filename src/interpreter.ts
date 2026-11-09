@@ -20,10 +20,35 @@ import { RuntimeError } from './runtimeerror';
 import { Token } from './token';
 import { TokenType } from './token-type';
 import { Lox } from './lox';
-import { Stmt, StmtVisitor, Print, Expression, Var, Block, If, While } from './stmt';
+import {
+  Stmt,
+  StmtVisitor,
+  Print,
+  Expression,
+  Var,
+  Block,
+  If,
+  While,
+  Function,
+  Return,
+} from './stmt';
 import { Environment } from './environment';
+import { Callable } from './callable';
+import { LoxFunction } from './function';
+import { Return as ReturnSignal } from './return';
 export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
-  private environment: Environment = new Environment();
+  readonly globals: Environment = new Environment();
+  private environment: Environment = this.globals;
+
+  constructor() {
+    const clock: Callable = {
+      arity: () => 0,
+      call: () => Date.now() / 1000,
+      toString: () => '<native fn>',
+    };
+    this.globals.define('clock', clock);
+  }
+
 
   visitBlockStmt(stmt: Block): void {
     this.executeBlock(stmt.statements, new Environment(this.environment));
@@ -61,6 +86,20 @@ export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
     }
 
     return null;
+  }
+
+  visitFunctionStmt(stmt: Function): void {
+    const func = new LoxFunction(stmt,this.environment);
+    this.environment.define(stmt.name.lexeme, func);
+  }
+
+  visitReturnStmt(stmt: Return): void {
+    let value: Object = null;
+    if (stmt.value !== null) {
+      value = this.evaluate(stmt.value);
+    }
+
+    throw new ReturnSignal(value);
   }
 
   visitLiteralExpr(expr: Literal): Object {
@@ -136,7 +175,35 @@ export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
   }
 
   visitCallExpr(expr: Call): Object {
-    throw new Error('Method not implemented.');
+    const callee = this.evaluate(expr.callee);
+
+    const args: Object[] = [];
+    for (const arg of expr.args) {
+      args.push(this.evaluate(arg));
+    }
+
+    if (
+      callee === null ||
+      (typeof callee !== 'object' && typeof callee !== 'function') ||
+      typeof (callee as Callable).call !== 'function' ||
+      typeof (callee as Callable).arity !== 'function'
+    ) {
+      throw new RuntimeError(
+        expr.paren,
+        'Can only call functions and classes.',
+      );
+    }
+
+    const func = callee as Callable;
+
+    if (args.length !== func.arity()) {
+      throw new RuntimeError(
+        expr.paren,
+        `Expected ${func.arity()} arguments but got ${args.length}.`,
+      );
+    }
+
+    return func.call(this, args);
   }
 
   visitGetExpr(expr: Get): Object {
@@ -174,7 +241,11 @@ export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
   }
 
   visitCommaExpr(expr: Comma): Object {
-    throw new Error('Method not implemented.');
+    let value: Object = null;
+    for (const expression of expr.expressions) {
+      value = this.evaluate(expression);
+    }
+    return value;
   }
 
   visitTernaryExpr(expr: Ternary): Object {

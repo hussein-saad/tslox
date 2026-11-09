@@ -2,6 +2,7 @@ import { Token } from './token';
 import {
   Assign,
   Binary,
+  Call,
   Comma,
   Expr,
   Grouping,
@@ -13,11 +14,20 @@ import {
 } from './expression';
 import { TokenType } from './token-type';
 import { Lox } from './lox';
-import { Stmt, Print, Expression, Var, Block, If, While } from './stmt';
+import {
+  Stmt,
+  Print,
+  Expression,
+  Var,
+  Block,
+  If,
+  While,
+  Function,
+  Return,
+} from './stmt';
 
 export class Parser {
   private static ParseError = class ParseError extends Error {};
-
   private readonly tokens: Token[];
   private current: number = 0;
 
@@ -66,6 +76,8 @@ export class Parser {
   private declaration(): Stmt {
     try {
       if (this.match(TokenType.VAR)) return this.varDeclaration();
+      if (this.match(TokenType.FUN))
+        return this.functionDeclaration('function');
       return this.statement();
     } catch (error) {
       if (error instanceof Parser.ParseError) {
@@ -91,12 +103,39 @@ export class Parser {
     return new Var(name, initializer);
   }
 
+  private functionDeclaration(kind: string): Stmt {
+    const name: Token = this.consume(
+      TokenType.IDENTIFIER,
+      `Expect ${kind} name.`,
+    );
+
+    this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} name.`);
+    const parameters: Token[] = [];
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (parameters.length >= 255) {
+          this.error(this.peek(), 'Cannot have more than 255 parameters.');
+        }
+
+        parameters.push(
+          this.consume(TokenType.IDENTIFIER, 'Expect parameter name.'),
+        );
+      } while (this.match(TokenType.COMMA));
+    }
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+    this.consume(TokenType.LEFT_BRACE, `Expect '{' before ${kind} body.`);
+    const body: Stmt[] = this.block();
+    return new Function(name, parameters, body);
+  }
+
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
     if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.WHILE)) return this.whileStatement();
     if (this.match(TokenType.FOR)) return this.forStatement();
+    if (this.match(TokenType.RETURN)) return this.returnStatement();
     return this.expressionStatement();
   }
 
@@ -188,6 +227,17 @@ export class Parser {
     }
 
     return body;
+  }
+
+  private returnStatement() {
+    const keyword: Token = this.previous();
+    let value: Expr | null = null;
+    if (!this.check(TokenType.SEMICOLON)) {
+      value = this.expression();
+    }
+
+    this.consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+    return new Return(keyword, value);
   }
 
   private assignment(): Expr {
@@ -356,7 +406,7 @@ export class Parser {
     return expr;
   }
 
-  // unary -> ( "!" | "-" ) unary | primary
+  // unary -> ( "!" | "-" ) unary | call
   private unary(): Expr {
     if (this.match(TokenType.BANG, TokenType.MINUS)) {
       const operator: Token = this.previous();
@@ -364,7 +414,39 @@ export class Parser {
       return new Unary(operator, right);
     }
 
-    return this.primary();
+    return this.call();
+  }
+
+  // call -> primary ( "(" arguments? ")" )*
+  private call(): Expr {
+    let expr: Expr = this.primary();
+
+    while (true) {
+      if (this.match(TokenType.LEFT_PAREN)) {
+        expr = this.finishCall(expr);
+      } else {
+        break;
+      }
+    }
+
+    return expr;
+  }
+  // arguments -> expression ( "," expression )*
+  private finishCall(callee: Expr): Expr {
+    const args: Expr[] = [];
+
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        args.push(this.assignment());
+      } while (this.match(TokenType.COMMA));
+    }
+
+    const paren: Token = this.consume(
+      TokenType.RIGHT_PAREN,
+      "Expect ')' after arguments.",
+    );
+
+    return new Call(callee, paren, args);
   }
 
   // primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")"

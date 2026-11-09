@@ -1,7 +1,37 @@
 // the two operands needs to be both numbers or stings
 5 + "hello";
 
+// missing left operand
 + 10;
 
+// invalid assignment
 var x = 1;
 x + 1 = 2;
+
+// undefined variable.
+print missing;
+
+// invalid numeric operands
+true - 1;
+
+// invalid comparison operands
+true < 1;
+
+// wrong number of function arguments
+fun oneArgument(value) {
+  return value;
+}
+oneArgument();
+
+// missing semicolon
+print "missing semicolon"
+
+// missing closing parenthesis
+if (true {
+  print "unreachable";
+}
+
+// invalid function parameter.
+fun invalid(1) {
+  print "unreachable";
+}
