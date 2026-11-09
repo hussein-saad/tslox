@@ -8,6 +8,11 @@
 - Arithmetic, comparisons, equality, and unary operators
 - Variables and assignment
 - Blocks and variable scope
+- `if`/`else` conditional statements
+- `while` and `for` loops
+- Logical `and` and `or` expressions with short-circuit evaluation
+- User-defined functions, parameters, calls, and `return`
+- Closures and the native `clock()` function
 - Ternary expressions
 - `print` statements
 - Interactive REPL and script files
@@ -55,7 +60,7 @@ pnpm start test/scope.lox
 
 ## Run the tests
 
-Run all script and REPL tests with one command:
+Run all Lox script tests with one command:
 
 ```bash
 pnpm test
