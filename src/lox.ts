@@ -7,6 +7,7 @@ import { Parser } from './parser';
 import { RuntimeError } from './runtimeerror';
 import { Interpreter } from './interpreter';
 import { Stmt } from './stmt';
+import { Resolver } from './resolver';
 
 export class Lox {
   private static readonly interpreter = new Interpreter();
@@ -68,6 +69,8 @@ export class Lox {
     const statements: Array<Stmt> = isRepl
       ? parser.parseRepl()
       : parser.parse();
+    const resolver = new Resolver(this.interpreter);
+    resolver.resolve(statements);
     if (this.hadError) return;
     if (isRepl) {
       this.interpreter.interpretRepl(statements);

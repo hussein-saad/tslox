@@ -35,3 +35,14 @@ if (true {
 fun invalid(1) {
   print "unreachable";
 }
+
+var a = "outer";
+{
+  var a = a;
+}
+
+{
+  var x = 10;
+  var x = 5;
+}
+

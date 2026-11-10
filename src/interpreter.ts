@@ -39,6 +39,7 @@ import { Return as ReturnSignal } from './return';
 export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
   readonly globals: Environment = new Environment();
   private environment: Environment = this.globals;
+  private readonly locals = new Map<Expr, number>();
 
   constructor() {
     const clock: Callable = {
@@ -170,7 +171,12 @@ export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
 
   visitAssignExpr(expr: Assign): Object {
     const value = this.evaluate(expr.value);
-    this.environment.assign(expr.name, value);
+    const distance = this.locals.get(expr);
+    if (distance === undefined) {
+      this.globals.assign(expr.name, value);
+    } else {
+      this.environment.assignAt(distance, expr.name, value);
+    }
     return value;
   }
 
@@ -237,7 +243,15 @@ export class Interpreter implements Visitor<Object>, StmtVisitor<void> {
   }
 
   visitVariableExpr(expr: Variable): Object {
-    return this.environment.get(expr.name);
+    const distance = this.locals.get(expr);
+    if (distance === undefined) {
+      return this.globals.get(expr.name);
+    }
+    return this.environment.getAt(distance, expr.name.lexeme);
+  }
+
+  resolve(expr: Expr, depth: number): void {
+    this.locals.set(expr, depth);
   }
 
   visitCommaExpr(expr: Comma): Object {
